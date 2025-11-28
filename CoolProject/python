@@ -1,0 +1,78 @@
+import tkinter as tk
+import math
+from tkinter import ttk
+
+class GradientFrame(tk.Canvas):
+    def __init__(self, parent, color1, color2, **kwargs):
+        super().__init__(parent, **kwargs)
+        self.color1 = color1
+        self.color2 = color2
+        self.bind("<Configure>", self._draw_gradient)
+
+    def _draw_gradient(self, event=None):
+        self.delete("gradient")
+        width = self.winfo_width()
+        height = self.winfo_height()
+
+        (r1, g1, b1) = self.winfo_rgb(self.color1)
+        (r2, g2, b2) = self.winfo_rgb(self.color2)
+        r_ratio = float(r2 - r1) / height
+        g_ratio = float(g2 - g1) / height
+        b_ratio = float(b2 - b1) / height
+
+        for i in range(height):
+            nr = int(r1 + (r_ratio * i))
+            ng = int(g1 + (g_ratio * i))
+            nb = int(b1 + (b_ratio * i))
+            color = f"#{nr>>8:02x}{ng>>8:02x}{nb>>8:02x}"
+            self.create_line(0, i, width, i, tags=("gradient",), fill=color)
+
+        self.lower("gradient")
+
+
+class AnimatedCircle:
+    def __init__(self, canvas):
+        self.canvas = canvas
+        self.angle = 0
+        self.radius = 40
+        self.circle = canvas.create_oval(0, 0, 0, 0, fill="#ffffff88", outline="")
+        self.animate()
+
+    def animate(self):
+        w = self.canvas.winfo_width() // 2
+        h = self.canvas.winfo_height() // 2
+        r = 120
+
+        x = w + r * math.cos(self.angle)
+        y = h + r * math.sin(self.angle)
+
+        self.canvas.coords(
+            self.circle, 
+            x - self.radius, y - self.radius, 
+            x + self.radius, y + self.radius
+        )
+
+        self.angle += 0.05
+        self.canvas.after(20, self.animate)
+
+
+def main():
+    root = tk.Tk()
+    root.title("Demo Python Estética ✨")
+    root.geometry("500x400")
+
+    gradient = GradientFrame(root, "#6a11cb", "#2575fc")
+    gradient.pack(fill="both", expand=True)
+
+    canvas = tk.Canvas(gradient, bg="", highlightthickness=0)
+    canvas.place(relwidth=1, relheight=1)
+
+    AnimatedCircle(canvas)
+
+    btn = ttk.Button(root, text="¡Haz clic!", command=lambda: print("Botón pulsado"))
+    btn.place(relx=0.5, rely=0.85, anchor="center")
+
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
